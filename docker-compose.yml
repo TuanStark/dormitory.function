@@ -1,21 +1,22 @@
+version: "3.8"
+
 services:
-  functions:
-    container_name: "${PROJECT_NAME}_functions"
-    build:
-      dockerfile: Dockerfile
-      context: .
-      target: development
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
-    env_file:
-      - .env
-    command: npm run dev
-    restart: always
-    networks:
-      my_custom_network:
-        ipv4_address: ${FUNCTION_IP}
+  # functions:
+  #   container_name: "${PROJECT_NAME}_functions"
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8000:8000"
+  #   volumes:
+  #     - .:/app
+  #   env_file:
+  #     - .env
+  #   command: sh -c "npx prisma generate && npm run dev"
+  #   restart: always
+  #   networks:
+  #     my_custom_network:
+  #       ipv4_address: ${FUNCTION_IP}
 
   db:
     image: mysql:latest
@@ -25,6 +26,8 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "3306:3306" # Thêm dòng này
     volumes:
       - mysql-data:/var/lib/mysql
     restart: always
@@ -40,7 +43,6 @@ services:
       PMA_USER: ${MYSQL_USER}
       PMA_PASSWORD: ${MYSQL_PASSWORD}
       PMA_ARBITRARY: 1
-    restart: always
     ports:
       - "8080:80"
     depends_on:
@@ -48,9 +50,9 @@ services:
     networks:
       - my_custom_network
 
+volumes:
+  mysql-data:
+
 networks:
   my_custom_network:
     external: true
-
-volumes:
-  mysql-data:
