@@ -8,6 +8,10 @@ import { ConfigModule } from '@nestjs/config';
 import { BuildingModule } from './building/building.module';
 import { RoomModule } from './room/room.module';
 import { PostModule } from './post/post.module';
+import { RoomAmenityModule } from './room-amenity/room-amenity.module';
+import { RoomImagesModule } from './room-images/room-images.module';
+import { ReviewModule } from './review/review.module';
+import { RoomBookingModule } from './room-booking/room-booking.module';
 
 @Module({
   imports: [
@@ -20,6 +24,10 @@ import { PostModule } from './post/post.module';
     BuildingModule,
     RoomModule,
     PostModule,
+    RoomAmenityModule,
+    RoomImagesModule,
+    ReviewModule,
+    RoomBookingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

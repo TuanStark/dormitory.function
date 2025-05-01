@@ -5,6 +5,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { ResponseData } from 'src/global/globalClass';
 import { HttpMessage, HttpStatus } from 'src/global/globalEnum';
 import { PaginationParams, paginate } from 'src/common/utils/pagination.util';
+import { BuildingWithAverageRatingDto } from './dto/oustanding-building.dto';
 
 @Injectable()
 export class BuildingService {
@@ -28,6 +29,30 @@ export class BuildingService {
       where: { id }
     });
     return building;
+  }
+
+  async getBuildingsWithHighestAverageRating(limit: number = 10): Promise<BuildingWithAverageRatingDto[]> {
+    // Lấy danh sách tòa nhà, sắp xếp theo averageRating giảm dần
+    const buildings = await this.prisma.building.findMany({
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        description: true,
+        latitude: true,
+        address: true,
+        longitude: true,
+        floors: true,
+        averageRating: true,
+      },
+      orderBy: {
+        averageRating: 'desc',
+      },
+      take: limit,
+    });
+
+    // Chuyển đổi sang DTO
+    return buildings.map((building) => new BuildingWithAverageRatingDto(building));
   }
 
 }

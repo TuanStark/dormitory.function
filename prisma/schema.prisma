@@ -95,6 +95,13 @@ model User {
   gender       Gender?
   citizenId    String?        @unique @db.VarChar(12)
   universityId Int?
+  FacebookId   String?        @unique @db.VarChar(255)
+  GoogleId     String?        @unique @db.VarChar(255)
+  profileImage String?        @db.VarChar(255)
+  dateOfBirth  DateTime?
+  address      String?        @db.VarChar(255)
+  status       Boolean?      @default(true)
+  isVerified   Boolean?      @default(false)
   role         Role?          @relation(fields: [roleId], references: [id])
   university   University?    @relation(fields: [universityId], references: [id])
   bookings     RoomBooking[]
@@ -111,8 +118,15 @@ model Building {
   image       String?  @db.VarChar(255)
   description String?  @db.Text
   latitude    Float
+  address     String?  @db.VarChar(255)
   longitude   Float
   floors      Int
+  averageRating     Float          @db.Float @default(0)
+  fiveStar   Int @default(0)
+  fourStar   Int @default(0)
+  threeStar  Int @default(0)
+  twoStar    Int @default(0)
+  oneStar    Int @default(0)
   rooms       Room[]
   createAt    DateTime @default(now())
   updateAt    DateTime @updatedAt
@@ -196,7 +210,6 @@ model Review {
   id         Int          @id @default(autoincrement())
   userId     Int
   roomId     Int
-  rating     Int          @db.Int
   content    String?      @db.Text
   reviewDate DateTime     @default(now())
   status     ReviewStatus

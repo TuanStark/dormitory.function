@@ -149,4 +149,39 @@ export class AuthController {
       );
     }
   }
+
+  @Post('google')
+  async loginGoogle(@Body() dto: { email: string; name: string; googleId: string }) {
+    try {
+      return new ResponseData(
+        await this.authService.loginGoogle(dto),
+        HttpStatus.SUCCESS,
+        HttpMessage.SUCCESS,
+      );
+    } catch (error) {
+      return new ResponseData(
+        error,
+        HttpStatus.SERVER_ERROR,
+        HttpMessage.SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('facebook')
+  async loginFacebook(@Body() dto: { email: string; name: string; facebookId: string }) {
+    try {
+      return new ResponseData(
+        await this.authService.loginFacebook(dto),
+        HttpStatus.SUCCESS,
+        HttpMessage.SUCCESS,
+      );
+    } catch (error) {
+      return new ResponseData(
+        error,
+        HttpStatus.SERVER_ERROR,
+        HttpMessage.SERVER_ERROR,
+      );
+    }
+  }
+
 }

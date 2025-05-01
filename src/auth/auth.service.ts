@@ -130,4 +130,78 @@ export class AuthService {
       throw new ForbiddenException('Invalid refresh token');
     }
   }
+
+  async loginGoogle(dto: { email: string; name: string; googleId: string }) {
+    const { email, name, googleId } = dto;
+
+    let user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          { GoogleId: googleId },
+        ],
+      },
+    });
+
+    if (!user) {
+      // Tạo user mới nếu chưa tồn tại
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          fullName: name,
+          password: "",
+          GoogleId: googleId,
+          role: {
+            connect: {
+              id: 1, // Role mặc định
+            },
+          },
+        },
+      });
+    } else if (!user.GoogleId) {
+      // Cập nhật googleId nếu user tồn tại qua email nhưng chưa có googleId
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { GoogleId: googleId }
+      });
+    }
+
+    return await this.signJwtToken(user.id, user.email);
+  }
+
+  async loginFacebook(dto: { email: string; name: string; facebookId: string }) {
+    const { email, name, facebookId } = dto;
+
+    let user = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email },
+          { FacebookId: facebookId },
+        ],
+      },
+    });
+
+    if (!user) {
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          fullName: name,
+          password: "",
+          FacebookId:facebookId,
+          role: {
+            connect: {
+              id: 1,
+            },
+          },
+        },
+      });
+    } else if (!user.FacebookId) {
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: { FacebookId: facebookId },
+      });
+    }
+
+    return await this.signJwtToken(user.id, user.email);
+  }
 }

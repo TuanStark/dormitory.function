@@ -7,6 +7,7 @@ import { UpdateBuildingDto } from './dto/update-building.dto';
 import { ResponseData } from 'src/global/globalClass';
 import { HttpMessage, HttpStatus } from 'src/global/globalEnum';
 import { PaginationParams, paginate } from 'src/common/utils/pagination.util';
+import { BuildingWithAverageRatingDto } from './dto/oustanding-building.dto';
 
 @Controller('building')
 export class BuildingController {
@@ -16,6 +17,27 @@ export class BuildingController {
   findAll(@Req() request: Request) {
     const paginationParams = getPaginationParams(request.query as Record<string, string>);
     return this.buildingService.findAll(paginationParams);
+  }
+
+  @Get('top-rated')
+  async getBuildingsWithHighestAverageRating(
+    @Query('limit') limit: string = '3',
+  ): Promise<ResponseData<BuildingWithAverageRatingDto[]>> {
+    try {
+      const parsedLimit = Number(limit) || 3; 
+      const buildings = await this.buildingService.getBuildingsWithHighestAverageRating(parsedLimit);
+      return new ResponseData<BuildingWithAverageRatingDto[]>(
+        buildings,
+        HttpStatus.SUCCESS,
+        HttpMessage.SUCCESS
+      );
+    } catch (error) {
+      return new ResponseData<BuildingWithAverageRatingDto[]>(
+        [],
+        HttpStatus.SERVER_ERROR,
+        HttpMessage.SERVER_ERROR
+      );
+    }
   }
 
   @Get(':id')
