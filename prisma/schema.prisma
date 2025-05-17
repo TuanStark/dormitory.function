@@ -137,6 +137,7 @@ model Room {
   buildingId       Int
   roomNumber       String?        @db.VarChar(20)
   floor            Int
+  description      String?       @db.Text
   capacity         Int
   currentOccupants Int           @default(0)
   gender           RoomGender
@@ -161,6 +162,16 @@ model RoomImage {
   room        Room     @relation(fields: [roomId], references: [id])
   createAt    DateTime @default(now())
   updateAt    DateTime @updatedAt
+}
+
+model RoomAmenity {
+  id          Int      @id @default(autoincrement())
+  roomId      Int
+  amenityName String   @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  createAt    DateTime @default(now())
+  updateAt    DateTime @updatedAt
+  room        Room     @relation(fields: [roomId], references: [id])
 }
 
 model RoomBooking {
@@ -209,7 +220,8 @@ model Report {
 model Review {
   id         Int          @id @default(autoincrement())
   userId     Int
-  roomId     Int
+  roomId     Int          
+  rating     Int          @default(0)
   content    String?      @db.Text
   reviewDate DateTime     @default(now())
   status     ReviewStatus
@@ -220,22 +232,13 @@ model Review {
   room Room @relation(fields: [roomId], references: [id])
 }
 
-model RoomAmenity {
-  id          Int      @id @default(autoincrement())
-  roomId      Int
-  amenityName String   @db.VarChar(100)
-  description String?  @db.VarChar(255)
-  createAt    DateTime @default(now())
-  updateAt    DateTime @updatedAt
-  room        Room     @relation(fields: [roomId], references: [id])
-}
-
 model Post {
   id       Int        @id @default(autoincrement())
   userId   Int
-  title    String     @db.VarChar(255)
-  content  String     @db.Text
+  title    String?     @db.VarChar(255)
+  content  String?    @db.Text
   image    String?    @db.VarChar(255)
+  description String?  @db.Text
   postedAt DateTime   @default(now())
   status   PostStatus
   createAt DateTime   @default(now())

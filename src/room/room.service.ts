@@ -24,8 +24,41 @@ export class RoomService {
   async findOne(id: number) {
     const room = await this.prisma.room.findUnique({
       where: { id },
+      include: {
+        amenities: true,
+        images: true,
+        building: true,
+      },
     });
     return room;
+  }
+
+  async findRoomsByBuildingId(buildingId: number, limit?: number) {
+    try {
+      const takeLimit = limit ? parseInt(String(limit)) : 10;
+      
+      const rooms = await this.prisma.room.findMany({
+        where: { buildingId },
+        take: takeLimit,
+        include: {
+          images: true,
+          amenities: true,
+        }
+      });
+      
+      return {
+        data: rooms,
+        status: "success",
+        message: "Lấy danh sách phòng thành công"
+      };
+    } catch (error) {
+      console.error('Error finding rooms by buildingId:', error);
+      return {
+        data: [],
+        status: "error",
+        message: `Không thể lấy danh sách phòng: ${error.message}`
+      };
+    }
   }
 
   async createRoom(createRoomDto: CreateRoomDto) {

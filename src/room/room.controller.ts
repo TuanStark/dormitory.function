@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Query } from '@nestjs/common';
 import { RoomService } from './room.service';
 import { getPaginationParams } from 'src/common/utils/pagination.util';
 import { Request } from 'express';
@@ -35,7 +35,6 @@ export class RoomController {
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    console.log(id);
     try {
       return new ResponseData(  
         await this.roomService.findOne(+id),
@@ -45,6 +44,35 @@ export class RoomController {
     } catch (error) {
       return new ResponseData(
         error,
+        HttpStatus.SERVER_ERROR,
+        HttpMessage.SERVER_ERROR
+      );
+    }
+  }
+
+  @Get('building/:id')
+  async findRoomsByBuildingId(@Param('id') id: string, @Query('limit') limit?: string) {
+    try {
+      const buildingId = parseInt(id, 10);
+      if (isNaN(buildingId)) {
+        return new ResponseData(
+          null,
+          HttpStatus.BAD_REQUEST,
+          'Building ID phải là số'
+        );
+      }
+      
+      const limitValue = limit ? parseInt(limit, 10) : undefined;
+      
+      return new ResponseData(
+        await this.roomService.findRoomsByBuildingId(buildingId, limitValue),
+        HttpStatus.SUCCESS,
+        HttpMessage.SUCCESS
+      );
+    } catch (error) {
+      console.error('Controller error:', error);
+      return new ResponseData(
+        { message: error.message },
         HttpStatus.SERVER_ERROR,
         HttpMessage.SERVER_ERROR
       );
