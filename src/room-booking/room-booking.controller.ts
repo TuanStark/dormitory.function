@@ -5,11 +5,14 @@ import { UpdateRoomBookingDto } from './dto/update-room-booking.dto';
 import { ResponseData } from 'src/global/globalClass';
 import { HttpMessage, HttpStatus } from 'src/global/globalEnum';
 import { BookingStatus } from '@prisma/client';
+import { MyJwtGuard } from '../auth/guard';
+
 
 @Controller('room-booking')
 export class RoomBookingController {
   constructor(private readonly roomBookingService: RoomBookingService) {}
 
+  @UseGuards(MyJwtGuard)
   @Post()
   async create(@Body() createRoomBookingDto: CreateRoomBookingDto) {
     try {
@@ -48,6 +51,7 @@ export class RoomBookingController {
     }
   }
 
+  @UseGuards(MyJwtGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
     try {
@@ -66,6 +70,7 @@ export class RoomBookingController {
     }
   }
 
+  @UseGuards(MyJwtGuard)
   @Post(':id/status')
   async updateStatus(
     @Param('id') id: string,

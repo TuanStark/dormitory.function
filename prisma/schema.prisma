@@ -197,6 +197,7 @@ model Payment {
   paymentDate   DateTime      @default(now())
   paymentMethod PaymentMethod
   paymentStatus PaymentStatus
+  metadata      String?       @db.Text
   createAt      DateTime      @default(now())
   updateAt      DateTime      @updatedAt
 

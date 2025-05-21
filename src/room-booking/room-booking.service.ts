@@ -34,6 +34,23 @@ export class RoomBookingService {
       totalAmount = Number(room.price) * createRoomBookingDto.stayDuration;
     }
 
+    // Cập nhật thông tin người dùng nếu có
+    if (createRoomBookingDto.userInfo) {
+      const { fullName, phoneNumber, email, identityCard, address } = createRoomBookingDto.userInfo;
+      
+      // Cập nhật thông tin người dùng
+      await this.prisma.user.update({
+        where: { id: createRoomBookingDto.userId },
+        data: {
+          fullName: fullName || undefined,
+          phoneNumber: phoneNumber || undefined,
+          email: email || undefined,
+          citizenId: identityCard || undefined,
+          address: address || undefined,
+        }
+      });
+    }
+
     // Tạo booking
     const booking = await this.prisma.roomBooking.create({
       data: {

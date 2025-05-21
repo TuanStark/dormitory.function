@@ -88,7 +88,7 @@ export class AuthService {
 
     // Generate access token (short-lived)
     const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: '15m', // 15 minutes
+      expiresIn: '1d', // 15 minutes
       secret: this.config.get('JWT_SECRET'),
     });
 
@@ -166,16 +166,16 @@ export class AuthService {
       });
     }
 
+
     return await this.signJwtToken(user.id, user.email);
   }
 
-  async loginFacebook(dto: { email: string; name: string; facebookId: string }) {
-    const { email, name, facebookId } = dto;
+  async loginFacebook(dto: { name: string; facebookId: string }) {
+    const { name, facebookId } = dto;
 
     let user = await this.prisma.user.findFirst({
       where: {
         OR: [
-          { email },
           { FacebookId: facebookId },
         ],
       },
@@ -184,7 +184,7 @@ export class AuthService {
     if (!user) {
       user = await this.prisma.user.create({
         data: {
-          email,
+          email: "",
           fullName: name,
           password: "",
           FacebookId:facebookId,
