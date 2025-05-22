@@ -13,6 +13,7 @@ import { RoomImagesModule } from './room-images/room-images.module';
 import { ReviewModule } from './review/review.module';
 import { RoomBookingModule } from './room-booking/room-booking.module';
 import { PaymentModule } from './payment/payment.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -29,6 +30,7 @@ import { PaymentModule } from './payment/payment.module';
     ReviewModule,
     RoomBookingModule,
     PaymentModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

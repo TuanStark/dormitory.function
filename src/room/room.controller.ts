@@ -6,14 +6,29 @@ import { ResponseData } from 'src/global/globalClass';
 import { HttpMessage , HttpStatus} from 'src/global/globalEnum';
 import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
-
+import { MyJwtGuard } from '../auth/guard';
+import { UseGuards } from '@nestjs/common';
+import { FindAllDto } from './dto/findall-room.dto';
 @Controller('room')
 export class RoomController {
   constructor(private readonly roomService: RoomService) {}
+
+  //@UseGuards(MyJwtGuard)
   @Get()
-  findAll(@Req() request: Request) {
-    const paginationParams = getPaginationParams(request.query as Record<string, string>);
-    return this.roomService.findAll(paginationParams);
+  async findAll(@Query() query: FindAllDto) {
+    try {
+      return new ResponseData(
+        await this.roomService.findAll(query),
+        HttpStatus.SUCCESS,
+        HttpMessage.SUCCESS
+      );
+    } catch (error) {
+      return new ResponseData(
+        error,
+        HttpStatus.SERVER_ERROR,
+        HttpMessage.SERVER_ERROR
+      );
+    }
   }
 
   @Post()

@@ -3,22 +3,69 @@ import { CreateRoomDto } from './dto/create-room.dto';
 import { UpdateRoomDto } from './dto/update-room.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PaginationParams, paginate } from 'src/common/utils/pagination.util';
+import { FindAllDto } from './dto/findall-room.dto';
 
 @Injectable()
 export class RoomService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async findAll(params: PaginationParams) {
-    // Sử dụng hàm phân trang tổng quát với mô hình building
-    // Xác định các trường tìm kiếm cho mô hình building
-    const searchFields = ['price', 'status', 'gender'];
+  async findAll(query: FindAllDto) {
+    const {
+      page = 1,
+      limit = 5,
+      search = '',
+      sortBy = 'id',
+      sortOrder = 'asc'
+    } = query;
 
-    return paginate(
-      this.prisma,
-      'room',
-      params,
-      searchFields
-    );
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    if (pageNumber < 1 || limitNumber < 1) {
+      throw new Error('Page and limit must be greater than 0');
+    }
+
+    const take = limitNumber;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const searchUpCase = search.charAt(0).toUpperCase() + search.slice(1);
+    const where = search
+      ? {
+        OR: [
+          { roomNumber: { contains: searchUpCase } },
+        ]
+      }
+      : {};
+    const orderBy = {
+      [sortBy]: sortOrder
+    };
+
+    const [rooms, total] = await Promise.all([
+      this.prisma.room.findMany({
+        where: where,
+        orderBy: orderBy,
+        skip,
+        take,
+        include: {
+          building: true,
+          amenities: true,
+          images: true,
+        }
+      }),
+      this.prisma.room.count({
+        where: where,
+      })
+    ])
+
+    return {
+      data: rooms,
+      meta: {
+        total,
+        pageNumber,
+        limitNumber,
+        totalPages: Math.ceil(total / limitNumber),
+      },
+    };
   }
 
   async findOne(id: number) {
@@ -36,7 +83,7 @@ export class RoomService {
   async findRoomsByBuildingId(buildingId: number, limit?: number) {
     try {
       const takeLimit = limit ? parseInt(String(limit)) : 10;
-      
+
       const rooms = await this.prisma.room.findMany({
         where: { buildingId },
         take: takeLimit,
@@ -45,7 +92,7 @@ export class RoomService {
           amenities: true,
         }
       });
-      
+
       return {
         data: rooms,
         status: "success",
@@ -99,13 +146,13 @@ export class RoomService {
         if (createRoomDto.images && createRoomDto.images.length > 0) {
           const imagePromises = createRoomDto.images.map(async (image) => {
             let imageUrl = image.url;
-            
+
             // If base64Data and filename are provided, upload to Supabase
             if (image.base64Data && image.filename) {
               // Generate a unique filename to avoid collisions
               const uniqueFilename = `${Date.now()}-${image.filename}`;
             }
-            
+
             // Only create an image record if we have a URL (either from direct input or upload)
             if (imageUrl) {
               return prisma.roomImage.create({
@@ -117,7 +164,7 @@ export class RoomService {
               });
             }
           });
-          
+
           // Filter out undefined promises (in case imageUrl was not available)
           await Promise.all(imagePromises.filter(Boolean));
         }
@@ -147,11 +194,11 @@ export class RoomService {
         const existingRoom = await prisma.room.findUnique({
           where: { id },
         });
-        
+
         if (!existingRoom) {
           throw new Error(`Phòng với ID ${id} không tồn tại`);
         }
-        
+
         // 1. Update the room basic information
         const room = await prisma.room.update({
           where: { id },
@@ -202,13 +249,13 @@ export class RoomService {
           // Process each image - either upload to Supabase or use existing URL
           const imagePromises = updateRoomDto.images.map(async (image) => {
             let imageUrl = image.url;
-            
+
             // If base64Data and filename are provided, upload to Supabase
             if (image.base64Data && image.filename) {
               // Generate a unique filename to avoid collisions
               const uniqueFilename = `${Date.now()}-${image.filename}`;
             }
-            
+
             // Only create an image record if we have a URL
             if (imageUrl) {
               return prisma.roomImage.create({
@@ -220,7 +267,7 @@ export class RoomService {
               });
             }
           });
-          
+
           // Execute all valid image creation promises
           await Promise.all(imagePromises.filter(Boolean));
         }

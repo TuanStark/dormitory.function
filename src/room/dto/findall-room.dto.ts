@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsInt, Min, IsIn } from 'class-validator';
 
-export class FindAllUsersDto {
+export class FindAllDto {
   @IsOptional()
   page?: number;
 

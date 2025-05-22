@@ -1,11 +1,11 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
 import { RoomBookingService } from './room-booking.service';
 import { CreateRoomBookingDto } from './dto/create-room-booking.dto';
-import { UpdateRoomBookingDto } from './dto/update-room-booking.dto';
 import { ResponseData } from 'src/global/globalClass';
 import { HttpMessage, HttpStatus } from 'src/global/globalEnum';
 import { BookingStatus } from '@prisma/client';
 import { MyJwtGuard } from '../auth/guard';
+import { FindAllDto } from 'src/room/dto/findall-room.dto';
 
 
 @Controller('room-booking')
@@ -51,11 +51,33 @@ export class RoomBookingController {
     }
   }
 
+  // @UseGuards(MyJwtGuard)
+  // @Get(':id')
+  // async findOne(@Param('id') id: string) {
+  //   try {
+  //     const booking = await this.roomBookingService.findOne(+id);
+  //     return new ResponseData(
+  //       booking,
+  //       HttpStatus.SUCCESS,
+  //       HttpMessage.SUCCESS
+  //     );
+  //   } catch (error) {
+  //     return new ResponseData(
+  //       null,
+  //       HttpStatus.SERVER_ERROR,
+  //       error.message
+  //     );
+  //   }
+  // }
+
   @UseGuards(MyJwtGuard)
-  @Get(':id')
-  async findOne(@Param('id') id: string) {
+  @Post(':id/status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: BookingStatus
+  ) {
     try {
-      const booking = await this.roomBookingService.findOne(+id);
+      const booking = await this.roomBookingService.updateStatus(+id, status);
       return new ResponseData(
         booking,
         HttpStatus.SUCCESS,
@@ -71,15 +93,12 @@ export class RoomBookingController {
   }
 
   @UseGuards(MyJwtGuard)
-  @Post(':id/status')
-  async updateStatus(
-    @Param('id') id: string,
-    @Body('status') status: BookingStatus
-  ) {
+  @Get('all')
+  async findAllBooking(@Query() query: FindAllDto) {
     try {
-      const booking = await this.roomBookingService.updateStatus(+id, status);
+      const bookings = await this.roomBookingService.findAllBooking(query);
       return new ResponseData(
-        booking,
+        bookings,
         HttpStatus.SUCCESS,
         HttpMessage.SUCCESS
       );

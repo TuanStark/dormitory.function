@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateRoomBookingDto } from './dto/create-room-booking.dto';
 import { BookingStatus, RoomStatus } from '@prisma/client';
+import { FindAllDto } from 'src/room/dto/findall-room.dto';
 
 @Injectable()
 export class RoomBookingService {
@@ -94,26 +95,32 @@ export class RoomBookingService {
     });
   }
 
-  async findOne(id: number) {
-    const booking = await this.prisma.roomBooking.findUnique({
-      where: { id },
-      include: {
-        room: {
-          include: {
-            building: true
-          }
-        },
-        user: true,
-        payment: true
-      }
-    });
+  // async findOne(id: number) {
+  //   // Đảm bảo id là số nguyên
+  //   const idNumber = parseInt(String(id), 10);
+    
+  //   const booking = await this.prisma.roomBooking.findMany({
+  //     where: {
+  //       id: idNumber
+  //     },
+  //     take: 1,
+  //     include: {
+  //       room: {
+  //         include: {
+  //           building: true
+  //         }
+  //       },
+  //       user: true,
+  //       payment: true
+  //     }
+  //   });
 
-    if (!booking) {
-      throw new NotFoundException('Booking not found');
-    }
+  //   if (!booking || booking.length === 0) {
+  //     throw new NotFoundException('Booking not found');
+  //   }
 
-    return booking;
-  }
+  //   return booking[0];
+  // }
 
   async updateStatus(id: number, status: BookingStatus) {
     const booking = await this.prisma.roomBooking.findUnique({
@@ -154,5 +161,73 @@ export class RoomBookingService {
         payment: true
       }
     });
+  }
+
+  async findAllBooking(query: FindAllDto) {
+    const { 
+      page = 1, 
+      limit = 5, 
+      search, 
+      sortBy = 'createAt', 
+      sortOrder = 'desc'
+    } = query;
+
+    const pageNumber = Number(page);
+    const limitNumber = Number(limit);
+
+    if (pageNumber < 1 || limitNumber < 1) {
+      throw new Error('Page and limit must be greater than 0');
+    }
+
+    const take = limitNumber;
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const where = search ? {
+      OR:[
+        {
+          room: {
+            roomNumber: {
+              contains: search,
+            }
+          }
+        }
+      ]
+    } : {};
+
+    const orderBy = {
+      [sortBy]: sortOrder
+    };
+
+    const [roomBookings, total] = await Promise.all([
+      this.prisma.roomBooking.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+        include: {
+          room: {
+            include: {
+              building: true
+            }
+          },
+          user: true,
+          payment: true
+        }
+      }),
+      this.prisma.roomBooking.count({
+        where
+      })
+    ]);
+
+    return {
+      data: roomBookings,
+      meta: {
+        total,
+        pageNumber,
+        limitNumber,
+        totalPages: Math.ceil(total / limitNumber),
+      },
+    };
+    
   }
 }
