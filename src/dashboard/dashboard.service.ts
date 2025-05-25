@@ -35,11 +35,14 @@ export class DashboardService {
           status: 'available',
         }
       }),
-      this.prisma.payment.aggregate({
-        _sum: {
-          amount: true,
+      this.prisma.roomBooking.aggregate({
+        where: {
+          status: 'approved'
         },
-      }),
+        _sum: { // Fixed syntax for aggregate
+          totalAmount: true
+        }
+      })
     ])
     return {
       totalUsers,

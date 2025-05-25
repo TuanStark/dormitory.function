@@ -52,32 +52,29 @@ export class RoomBookingController {
   }
 
   // @UseGuards(MyJwtGuard)
-  // @Get(':id')
-  // async findOne(@Param('id') id: string) {
-  //   try {
-  //     const booking = await this.roomBookingService.findOne(+id);
-  //     return new ResponseData(
-  //       booking,
-  //       HttpStatus.SUCCESS,
-  //       HttpMessage.SUCCESS
-  //     );
-  //   } catch (error) {
-  //     return new ResponseData(
-  //       null,
-  //       HttpStatus.SERVER_ERROR,
-  //       error.message
-  //     );
-  //   }
-  // }
-
-  @UseGuards(MyJwtGuard)
-  @Post(':id/status')
-  async updateStatus(
-    @Param('id') id: string,
-    @Body('status') status: BookingStatus
-  ) {
+  @Get('all')
+  async findAllBooking(@Query() query: FindAllDto) {
     try {
-      const booking = await this.roomBookingService.updateStatus(+id, status);
+      const bookings = await this.roomBookingService.findAllBooking(query);
+      return new ResponseData(
+        bookings,
+        HttpStatus.SUCCESS,
+        HttpMessage.SUCCESS
+      );
+    } catch (error) {
+      return new ResponseData(
+        null,
+        HttpStatus.SERVER_ERROR,
+        error.message
+      );
+    }
+  }
+
+  // @UseGuards(MyJwtGuard)
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    try {
+      const booking = await this.roomBookingService.findOne(+id);
       return new ResponseData(
         booking,
         HttpStatus.SUCCESS,
@@ -93,12 +90,15 @@ export class RoomBookingController {
   }
 
   @UseGuards(MyJwtGuard)
-  @Get('all')
-  async findAllBooking(@Query() query: FindAllDto) {
+  @Post(':id/status')
+  async updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: BookingStatus
+  ) {
     try {
-      const bookings = await this.roomBookingService.findAllBooking(query);
+      const booking = await this.roomBookingService.updateStatus(+id, status);
       return new ResponseData(
-        bookings,
+        booking,
         HttpStatus.SUCCESS,
         HttpMessage.SUCCESS
       );

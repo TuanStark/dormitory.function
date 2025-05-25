@@ -182,6 +182,7 @@ model RoomBooking {
   status       BookingStatus
   checkInDate  DateTime      @db.Date
   stayDuration Int?
+  totalAmount  Float         @default(0)
   createAt     DateTime      @default(now())
   updateAt     DateTime      @updatedAt
 
@@ -192,11 +193,13 @@ model RoomBooking {
 
 model Payment {
   id            Int           @id @default(autoincrement())
+  paymentCode   String?
   bookingId     Int
   amount        Decimal       @db.Decimal(10, 2)
   paymentDate   DateTime      @default(now())
   paymentMethod PaymentMethod
   paymentStatus PaymentStatus
+  imageUrl      String?       @db.Text
   metadata      String?       @db.Text
   createAt      DateTime      @default(now())
   updateAt      DateTime      @updatedAt

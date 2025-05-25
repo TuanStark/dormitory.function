@@ -20,6 +20,10 @@ export class CreatePaymentDto {
   @IsString()
   ipAddr: string;
 
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
+
   @IsNumber()
   @IsOptional()
   bookingId?: number;
@@ -47,6 +51,10 @@ export class CreateBankTransferDto {
   @IsString()
   @IsOptional()
   transactionCode?: string;
+
+  @IsString()
+  @IsOptional()
+  imageUrl?: string;
 
   @IsString()
   @IsOptional()

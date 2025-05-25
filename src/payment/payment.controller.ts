@@ -15,6 +15,7 @@ export class PaymentController {
 
   @Post('bank-transfer')
   async createBankTransfer(@Body() createBankTransferDto: CreateBankTransferDto) {
+    console.log("this is bank-tranfer")
     try {
       const result = await this.paymentService.createBankTransfer(createBankTransferDto);
       return new ResponseData(

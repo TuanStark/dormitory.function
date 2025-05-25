@@ -32,7 +32,7 @@ export class RoomBookingService {
     // Tính tổng tiền nếu chưa có
     let totalAmount = createRoomBookingDto.totalAmount;
     if (!totalAmount && createRoomBookingDto.stayDuration) {
-      totalAmount = Number(room.price) * createRoomBookingDto.stayDuration;
+      totalAmount = Number(room.price) * (createRoomBookingDto.stayDuration/30);
     }
 
     // Cập nhật thông tin người dùng nếu có
@@ -61,6 +61,7 @@ export class RoomBookingService {
         status: BookingStatus.pending,
         checkInDate: createRoomBookingDto.checkInDate,
         stayDuration: createRoomBookingDto.stayDuration,
+        totalAmount: totalAmount || 0
       },
       include: {
         room: {
@@ -95,32 +96,26 @@ export class RoomBookingService {
     });
   }
 
-  // async findOne(id: number) {
-  //   // Đảm bảo id là số nguyên
-  //   const idNumber = parseInt(String(id), 10);
-    
-  //   const booking = await this.prisma.roomBooking.findMany({
-  //     where: {
-  //       id: idNumber
-  //     },
-  //     take: 1,
-  //     include: {
-  //       room: {
-  //         include: {
-  //           building: true
-  //         }
-  //       },
-  //       user: true,
-  //       payment: true
-  //     }
-  //   });
+  async findOne(id: number) {
+    const booking = await this.prisma.roomBooking.findUnique({
+      where: { id },
+      include: {
+        room: {
+          include: {
+            building: true
+          }
+        },
+        user: true,
+        payment: true
+      }
+    });
 
-  //   if (!booking || booking.length === 0) {
-  //     throw new NotFoundException('Booking not found');
-  //   }
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
 
-  //   return booking[0];
-  // }
+    return booking;
+  }
 
   async updateStatus(id: number, status: BookingStatus) {
     const booking = await this.prisma.roomBooking.findUnique({

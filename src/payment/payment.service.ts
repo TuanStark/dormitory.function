@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaymentDto, CreateBankTransferDto } from './dto/create-payment.dto';
 import * as crypto from 'crypto';
 import { ConfigService } from '@nestjs/config';
-import { PaymentMethod, PaymentStatus } from '@prisma/client';
+import { PaymentMethod, PaymentStatus, BookingStatus, RoomStatus } from '@prisma/client';
 import * as querystring from 'querystring';
 
 @Injectable()
@@ -213,42 +213,43 @@ export class PaymentService {
   }
 
   // Phương thức tạo thanh toán chuyển khoản ngân hàng thông thường
-  async createBankTransfer(createBankTransferDto: CreateBankTransferDto) {
-    if (!createBankTransferDto.amount || !createBankTransferDto.bookingId) {
+  async createBankTransfer(dto: CreateBankTransferDto) {
+    if (!dto.amount || !dto.bookingId) {
       throw new BadRequestException('Thiếu thông tin thanh toán bắt buộc');
     }
     
-    if (createBankTransferDto.amount <= 0) {
+    if (dto.amount <= 0) {
       throw new BadRequestException('Số tiền phải lớn hơn 0');
     }
 
     // Kiểm tra đặt phòng có tồn tại không
     const booking = await this.prisma.roomBooking.findUnique({
-      where: { id: createBankTransferDto.bookingId },
+      where: { id: dto.bookingId },
     });
 
     if (!booking) {
       throw new BadRequestException('Không tìm thấy thông tin đặt phòng');
     }
 
-    // Tạo mã thanh toán ngẫu nhiên nếu không có
-    const transactionCode = createBankTransferDto.transactionCode || 
+    // Tạo mã giao dịch ngẫu nhiên nếu không có
+    const transactionCode = dto.transactionCode || 
       `BT${Date.now()}${Math.floor(Math.random() * 1000)}`;
 
     // Tạo thanh toán mới
     const payment = await this.prisma.payment.create({
       data: {
-        amount: createBankTransferDto.amount,
-        bookingId: createBankTransferDto.bookingId,
+        amount: dto.amount,
+        bookingId: dto.bookingId,
         paymentMethod: PaymentMethod.bank_transfer,
-        paymentStatus: PaymentStatus.unpaid, // Mặc định là chưa thanh toán
-        // Lưu thông tin ngân hàng vào metadata (cần thêm trường này vào schema)
+        paymentStatus: PaymentStatus.unpaid,
+        imageUrl: dto.imageUrl,
+        paymentDate: new Date(),
         metadata: JSON.stringify({
-          bankName: createBankTransferDto.bankName || '',
-          accountNumber: createBankTransferDto.accountNumber || '',
-          accountName: createBankTransferDto.accountName || '',
+          bankName: dto.bankName || '',
+          accountNumber: dto.accountNumber || '',
+          accountName: dto.accountName || '',
           transactionCode: transactionCode,
-          note: createBankTransferDto.note || '',
+          note: dto.note || '',
         }),
       },
       include: {
@@ -264,26 +265,47 @@ export class PaymentService {
   }
 
   // Phương thức xác nhận thanh toán chuyển khoản đã hoàn tất
-  async confirmBankTransfer(paymentId: number, transactionCode?: string) {
+  async confirmBankTransfer(paymentId: number, transactionCode?: string, imageUrl?: string) {
     const payment = await this.prisma.payment.findUnique({
       where: { id: paymentId },
-      include: { booking: true },
+      include: { booking: { include: { room: true } } },
     });
 
     if (!payment) {
       throw new BadRequestException('Không tìm thấy thông tin thanh toán');
     }
 
-    // Nếu có mã giao dịch, cập nhật vào metadata
+    // Nếu có mã giao dịch hoặc ảnh, cập nhật vào metadata
     let metadata = {};
     try {
       metadata = JSON.parse(payment.metadata || '{}');
+      
       if (transactionCode) {
         metadata = { ...metadata, transactionCode };
       }
     } catch (error) {
       metadata = transactionCode ? { transactionCode } : {};
     }
+
+    // Cập nhật trạng thái booking thành approved
+    await this.prisma.roomBooking.update({
+      where: { id: payment.bookingId },
+      data: { status: BookingStatus.approved }
+    });
+
+    // Cập nhật số người trong phòng
+    const room = payment.booking.room;
+    await this.prisma.room.update({
+      where: { id: room.id },
+      data: {
+        currentOccupants: {
+          increment: 1
+        },
+        status: room.currentOccupants + 1 >= room.capacity 
+          ? RoomStatus.full 
+          : RoomStatus.available
+      }
+    });
 
     // Cập nhật trạng thái thanh toán thành đã thanh toán
     const updatedPayment = await this.prisma.payment.update({
@@ -292,6 +314,7 @@ export class PaymentService {
         paymentStatus: PaymentStatus.paid,
         updateAt: new Date(),
         metadata: JSON.stringify(metadata),
+        imageUrl: imageUrl || payment.imageUrl,
       },
       include: {
         booking: true,
@@ -302,5 +325,51 @@ export class PaymentService {
       payment: updatedPayment,
       message: 'Đã xác nhận thanh toán thành công',
     };
+  }
+
+  async getBankTransferInfo(paymentId: number) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: { booking: true },
+    });
+
+    if (!payment) {
+      throw new BadRequestException('Không tìm thấy thông tin thanh toán');
+    }
+
+    let bankInfo = {};
+    try {
+      bankInfo = JSON.parse(payment.metadata || '{}');
+    } catch (error) {
+      // Nếu không parse được, trả về đối tượng rỗng
+    }
+
+    return {
+      payment: {
+        id: payment.id,
+        amount: payment.amount,
+        status: payment.paymentStatus,
+        method: payment.paymentMethod,
+        createdAt: payment.createAt,
+        imageUrl: payment.imageUrl,
+      },
+      bankInfo,
+      booking: payment.booking,
+    };
+  }
+  
+  async uploadPaymentProof(paymentId: number, imageUrl: string) {
+    const payment = await this.prisma.payment.findUnique({
+      where: { id: paymentId },
+    });
+
+    if (!payment) {
+      throw new BadRequestException('Không tìm thấy thông tin thanh toán');
+    }
+
+    return this.prisma.payment.update({
+      where: { id: paymentId },
+      data: { imageUrl },
+    });
   }
 }

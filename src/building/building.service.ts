@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { BuildingWithAverageRatingDto } from './dto/oustanding-building.dto';
 import { FindAllBuildingDto } from './dto/find-all-building.dto';
+import { CreateBuildingDto } from './dto/create-building.dto';
 
 @Injectable()
 export class BuildingService {
@@ -120,7 +121,7 @@ export class BuildingService {
 
     return {
       data: buildings,
-      pagination: {
+      meta: {
         total,
         page: pageNum,
         limit: limitNum,
@@ -412,4 +413,27 @@ export class BuildingService {
     };
   }
 
+  async createBuilding(data: CreateBuildingDto) {
+    const building = await this.prisma.building.create({
+      data: {
+        ...data, 
+      },
+    });
+    return building;
+  }
+
+  async updateBuilding(id: number, data: CreateBuildingDto) {
+    const building = await this.prisma.building.update({
+      where: { id },
+      data,
+    });
+    return building;
+  }
+
+  async deleteBuilding(id: number) {
+    const building = await this.prisma.building.delete({
+      where: { id },
+    });
+    return building;
+  }
 }

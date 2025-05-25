@@ -1,20 +1,46 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req } from '@nestjs/common';
-import { Request } from 'express';
-import { getPaginationParams } from 'src/common/utils/pagination.util';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Req, UseGuards } from '@nestjs/common';
 import { BuildingService } from './building.service';
 import { CreateBuildingDto } from './dto/create-building.dto';
-import { UpdateBuildingDto } from './dto/update-building.dto';
 import { ResponseData } from 'src/global/globalClass';
 import { HttpMessage, HttpStatus } from 'src/global/globalEnum';
-import { PaginationParams, paginate } from 'src/common/utils/pagination.util';
 import { BuildingWithAverageRatingDto } from './dto/oustanding-building.dto';
-import { SearchBuildingDto } from './dto/search-building.dto';
 import { RoomGender } from '@prisma/client';
 import { FindAllBuildingDto } from './dto/find-all-building.dto';
-
+// import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 @Controller('building')
 export class BuildingController {
   constructor(private readonly buildingService: BuildingService) {}
+
+  // @UseGuards(JwtAuthGuard)
+  @Post()
+  async createBuilding(@Body() data: CreateBuildingDto) {
+    try {
+      const building = await this.buildingService.createBuilding(data);
+      return new ResponseData(building, HttpStatus.SUCCESS, HttpMessage.SUCCESS);
+    } catch (error) {
+      return new ResponseData(error, HttpStatus.SERVER_ERROR, HttpMessage.SERVER_ERROR);
+    }
+  }
+
+  @Patch(':id')
+  async updateBuilding(@Param('id') id: string, @Body() data: CreateBuildingDto) {
+    try {
+      const building = await this.buildingService.updateBuilding(+id, data);
+      return new ResponseData(building, HttpStatus.SUCCESS, HttpMessage.SUCCESS);
+    } catch (error) {
+      return new ResponseData(error, HttpStatus.SERVER_ERROR, HttpMessage.SERVER_ERROR);
+    }
+  }
+
+  @Delete(':id')
+  async deleteBuilding(@Param('id') id: string) {
+    try {
+      const building = await this.buildingService.deleteBuilding(+id);
+      return new ResponseData(building, HttpStatus.SUCCESS, HttpMessage.SUCCESS);
+    } catch (error) {
+      return new ResponseData(error, HttpStatus.SERVER_ERROR, HttpMessage.SERVER_ERROR);
+    }
+  }
 
   @Get()
   async findAll(@Query() query: FindAllBuildingDto) {
