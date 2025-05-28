@@ -15,6 +15,25 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
   //path : .../users/me
   //@UseGuards(AuthGuard('jwt'))
+  
+  @UseGuards(MyJwtGuard)
+  @Get('me')
+  async getCurrentUser(@GetUser('sub') userId: number) {
+    try {
+      return new ResponseData(
+        await this.userService.getCurrentUser(userId),
+        HttpStatus.SUCCESS,
+        HttpMessage.SUCCESS
+      );
+    } catch (error) {
+      return new ResponseData(
+        error,
+        HttpStatus.SERVER_ERROR,
+        HttpMessage.SERVER_ERROR
+      );
+    }
+  }
+  
   @UseGuards(MyJwtGuard) //you can also make your own "decorator"
   @Get(':id')
   async me(@Param('id') id: string) {

@@ -85,6 +85,40 @@ export class UserService {
     });
   }
 
+  async getCurrentUser(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phoneNumber: true,
+        roleId: true,
+        gender: true,
+        citizenId: true,
+        universityId: true,
+        profileImage: true,
+        dateOfBirth: true,
+        address: true,
+        status: true,
+        isVerified: true,
+        createAt: true,
+        updateAt: true,
+        role: {
+          select: {
+            name: true
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    console.log(user);
+    return user;
+  }
+
   async update(id: number, updateUserDto: UpdateUserDto) {
     try {
       const user =  await this.prisma.user.findUnique({

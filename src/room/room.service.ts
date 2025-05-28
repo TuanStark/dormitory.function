@@ -168,7 +168,7 @@ export class RoomService {
           // Filter out undefined promises (in case imageUrl was not available)
           await Promise.all(imagePromises.filter(Boolean));
         }
-
+        console.log(room)
         // 4. Return the created room with its related amenities and images
         return prisma.room.findUnique({
           where: { id: room.id },

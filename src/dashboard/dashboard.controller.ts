@@ -14,7 +14,4 @@ export class DashboardController {
   async getRecentBookings(@Query('limit') limit = 10) {
     return this.dashboardService.getRecentBookings(+limit);
   }
-
-
-  
 }
