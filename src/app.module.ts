@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BuildingModule } from './building/building.module';
 import { RoomModule } from './room/room.module';
 import { PostModule } from './post/post.module';
@@ -14,6 +14,8 @@ import { ReviewModule } from './review/review.module';
 import { RoomBookingModule } from './room-booking/room-booking.module';
 import { PaymentModule } from './payment/payment.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ContactModule } from './contact/contact.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -31,6 +33,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     RoomBookingModule,
     PaymentModule,
     DashboardModule,
+    ContactModule,
   ],
   controllers: [AppController],
   providers: [AppService],

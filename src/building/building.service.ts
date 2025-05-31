@@ -19,11 +19,14 @@ export class BuildingService {
       sortOption,
       page = 1,
       limit = 10,
+      address,
+      capacity,
     } = query;
 
     // Ensure page and limit are numbers
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
+    const capacityNum = Number(capacity) || 0;
 
     // Build the where clause for filtering
     const where = {
@@ -62,6 +65,14 @@ export class BuildingService {
               },
             },
           },
+        } : {},
+        capacityNum > 0 ? {
+          rooms: {
+            some: { capacity: { equals: capacityNum } },
+          },
+        } : {},
+        address ? {
+          address: { contains: address }
         } : {},
       ],
     };

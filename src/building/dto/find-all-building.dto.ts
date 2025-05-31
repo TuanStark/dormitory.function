@@ -37,6 +37,9 @@ export class FindAllBuildingDto {
   amenities?: string[];
 
   @IsOptional()
+  capacity?: number;
+
+  @IsOptional()
   @IsString()
   sortOption?: string = 'Mặc định';
 
@@ -49,4 +52,8 @@ export class FindAllBuildingDto {
   @Type(() => Number)
   @IsNumber()
   limit?: number = 10;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
 } 

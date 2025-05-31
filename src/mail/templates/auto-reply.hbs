@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Cảm ơn bạn đã liên hệ</title>
+    <style>
+        body {
+            font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+            color: #333333;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #28a745;
+            padding: 20px;
+            color: #ffffff;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 0 20px;
+        }
+        .message-summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .social-links {
+            margin-top: 20px;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #6c757d;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cảm ơn bạn đã liên hệ</h1>
+        </div>
+        <div class="content">
+            <p>Xin chào {{ name }},</p>
+            <p>Cảm ơn bạn đã gửi tin nhắn đến Dormitory System. Chúng tôi đã nhận được phản hồi của bạn và sẽ liên hệ lại trong thời gian sớm nhất.</p>
+            
+            <div class="message-summary">
+                <h3>Thông tin bạn đã gửi:</h3>
+                <p><strong>Chủ đề:</strong> {{ subject }}</p>
+                <p><strong>Nội dung:</strong> {{ message }}</p>
+            </div>
+
+            <p>Nếu bạn có bất kỳ câu hỏi nào khác, vui lòng liên hệ với chúng tôi qua email hoặc hotline.</p>
+            
+            <p>Hotline: 1900-1234</p>
+            <p>Email: support@dormitory.com</p>
+            
+            <p>Trân trọng,<br>Dormitory System</p>
+        </div>
+        <div class="footer">
+            <p>© {{ year }} Dormitory System. Tất cả các quyền được bảo lưu.</p>
+            <div class="social-links">
+                <a href="#">Facebook</a> | <a href="#">Instagram</a> | <a href="#">Twitter</a>
+            </div>
+            <p>Email này được gửi tự động, vui lòng không trả lời.</p>
+        </div>
+    </div>
+</body>
+</html> 
