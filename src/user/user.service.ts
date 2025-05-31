@@ -136,7 +136,6 @@ export class UserService {
       const user = await this.prisma.user.findUnique({
         where: { id: userId }
       })
-      console.log('user', user);
       
       if (!user) {
         throw new NotFoundException(`User with ID ${userId} not found`);
@@ -168,14 +167,12 @@ export class UserService {
         }
       }
       
-      console.log('Update data after processing:', updateData);
       
       try {
         const userUpdate = await this.prisma.user.update({
           where: { id: userId },
           data: updateData
         });
-        console.log('Updated user:', userUpdate);
         return userUpdate;
       } catch (updateError) {
         console.error('Error in prisma update operation:', updateError);
