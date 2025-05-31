@@ -6,6 +6,7 @@ import { HttpMessage, HttpStatus } from 'src/global/globalEnum';
 import { BookingStatus } from '@prisma/client';
 import { MyJwtGuard } from '../auth/guard';
 import { FindAllDto } from 'src/room/dto/findall-room.dto';
+import { GetUser } from '../auth/decorator';
 
 
 @Controller('room-booking')
@@ -99,6 +100,53 @@ export class RoomBookingController {
       const booking = await this.roomBookingService.updateStatus(+id, status);
       return new ResponseData(
         booking,
+        HttpStatus.SUCCESS,
+        HttpMessage.SUCCESS
+      );
+    } catch (error) {
+      return new ResponseData(
+        null,
+        HttpStatus.SERVER_ERROR,
+        error.message
+      );
+    }
+  }
+
+  @UseGuards(MyJwtGuard)
+  @Get('user/:userId')
+  async getBookingsByUserId(@Param('userId') userId: string) {
+    try {
+      const bookings = await this.roomBookingService.findBookingsByUserId(+userId);
+      return new ResponseData(
+        bookings,
+        HttpStatus.SUCCESS,
+        HttpMessage.SUCCESS
+      );
+    } catch (error) {
+      return new ResponseData(
+        null,
+        HttpStatus.SERVER_ERROR,
+        error.message
+      );
+    }
+  }
+
+  // Also add an endpoint for the current user's bookings
+  @UseGuards(MyJwtGuard)
+  @Get('my-bookings')
+  async getMyBookings(@GetUser('sub') userId: number) {
+    try {
+      if (!userId) {
+        return new ResponseData(
+          null,
+          HttpStatus.BAD_REQUEST,
+          'User not authenticated'
+        );
+      }
+      
+      const bookings = await this.roomBookingService.findBookingsByUserId(userId);
+      return new ResponseData(
+        bookings,
         HttpStatus.SUCCESS,
         HttpMessage.SUCCESS
       );

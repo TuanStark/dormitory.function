@@ -86,54 +86,122 @@ export class UserService {
   }
 
   async getCurrentUser(userId: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        phoneNumber: true,
-        roleId: true,
-        gender: true,
-        citizenId: true,
-        universityId: true,
-        profileImage: true,
-        dateOfBirth: true,
-        address: true,
-        status: true,
-        isVerified: true,
-        createAt: true,
-        updateAt: true,
-        role: {
-          select: {
-            name: true
+    try {
+      // Ensure userId is a valid integer
+      if (!userId || isNaN(Number(userId)) || !Number.isInteger(Number(userId)) || Number(userId) <= 0) {
+        throw new NotFoundException('Invalid user ID');
+      }
+      
+      const user = await this.prisma.user.findUnique({
+        where: { id: Number(userId) },
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          phoneNumber: true,
+          roleId: true,
+          gender: true,
+          citizenId: true,
+          universityId: true,
+          profileImage: true,
+          dateOfBirth: true,
+          address: true,
+          status: true,
+          isVerified: true,
+          createAt: true,
+          updateAt: true,
+          role: {
+            select: {
+              name: true
+            }
           }
         }
-      }
-    });
+      });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      
+      return user;
+    } catch (error) {
+      console.error('Error retrieving user:', error);
+      // Re-throw the error to be handled by the controller
+      throw error;
     }
-    console.log(user);
-    return user;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
+    const userId = Number(id);
     try {
-      const user =  await this.prisma.user.findUnique({
-        where: { id }
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId }
       })
-      if(user){
-        const userUpdate = await this.prisma.user.update({
-          where: { id },
-          data: updateUserDto
-        })
-        return userUpdate
+      console.log('user', user);
+      
+      if (!user) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
       }
-      return null
+      
+      // Try to handle date format if it's a string
+      let updateData = { ...updateUserDto };
+      
+      // If dateOfBirth is provided and it's a string, convert it to proper ISO-8601 format with time
+      if (updateData.dateOfBirth && typeof updateData.dateOfBirth === 'string') {
+        try {
+          // Ensure the date is in full ISO format with time component
+          // If the date is just in YYYY-MM-DD format, add the time component
+          const dateStr = updateData.dateOfBirth;
+          if (dateStr.length === 10 && dateStr.includes('-')) {
+            // If it's just a date without time (YYYY-MM-DD), add time
+            updateData.dateOfBirth = `${dateStr}T00:00:00.000Z`;
+          } else {
+            // Try to parse and re-format to ensure valid ISO format
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) {
+              throw new Error(`Invalid date format: ${dateStr}`);
+            }
+            updateData.dateOfBirth = date.toISOString();
+          }
+        } catch (e) {
+          console.error('Error handling dateOfBirth:', e);
+          throw new Error(`Invalid date format for dateOfBirth: ${updateData.dateOfBirth}`);
+        }
+      }
+      
+      console.log('Update data after processing:', updateData);
+      
+      try {
+        const userUpdate = await this.prisma.user.update({
+          where: { id: userId },
+          data: updateData
+        });
+        console.log('Updated user:', userUpdate);
+        return userUpdate;
+      } catch (updateError) {
+        console.error('Error in prisma update operation:', updateError);
+        throw updateError;
+      }
     } catch (error) {
-      throw new NotFoundException('User not found');
+      console.error('Full error:', error);
+      
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      
+      // Check if it's a Prisma error
+      if (error.code) {
+        console.error('Prisma error code:', error.code);
+        
+        if (error.code === 'P2025') {
+          throw new NotFoundException(`User with ID ${userId} not found`);
+        } else if (error.code === 'P2002') {
+          throw new Error(`Unique constraint failed: ${error.meta?.target?.join(', ')}`);
+        } else {
+          throw new Error(`Database error: ${error.message}`);
+        }
+      }
+      
+      throw new Error(`Failed to update user: ${error.message}`);
     }
   }
 

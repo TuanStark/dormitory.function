@@ -26,6 +26,11 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!user) {
       throw new ForbiddenException('User not found');
     }
-    return user;
+    
+    // Return the user object with the sub property explicitly included
+    return {
+      ...user,
+      sub: payload.sub // Ensure 'sub' property is available
+    };
   }
 }

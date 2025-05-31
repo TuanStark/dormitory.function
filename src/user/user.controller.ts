@@ -18,19 +18,52 @@ export class UserController {
   
   @UseGuards(MyJwtGuard)
   @Get('me')
-  async getCurrentUser(@GetUser('sub') userId: number) {
+  async getCurrentUser(@GetUser('sub') userId: number, @GetUser() user: any) {
     try {
+      // If userId is not provided via the 'sub' property, try to get it from the user object
+      if (!userId && user && user.id) {
+        userId = Number(user.id);
+        console.log('Using user.id instead of sub:', userId);
+      }
+      
+      // If we still don't have a valid userId, throw an error
+      if (!userId) {
+        console.error('No valid userId found in request', { user });
+        return new ResponseData(
+          null,
+          HttpStatus.BAD_REQUEST,
+          'User ID not found in request'
+        );
+      }
+      
+      const userData = await this.userService.getCurrentUser(userId);
       return new ResponseData(
-        await this.userService.getCurrentUser(userId),
+        userData,
         HttpStatus.SUCCESS,
         HttpMessage.SUCCESS
       );
     } catch (error) {
-      return new ResponseData(
-        error,
-        HttpStatus.SERVER_ERROR,
-        HttpMessage.SERVER_ERROR
-      );
+      console.error('Error in getCurrentUser:', error);
+      // Check for specific error types
+      if (error.name === 'PrismaClientValidationError') {
+        return new ResponseData(
+          null,
+          HttpStatus.BAD_REQUEST,
+          'Invalid data format: ' + error.message
+        );
+      } else if (error.name === 'NotFoundException') {
+        return new ResponseData(
+          null,
+          HttpStatus.NOT_FOUND,
+          error.message
+        );
+      } else {
+        return new ResponseData(
+          null,
+          HttpStatus.SERVER_ERROR,
+          'An error occurred while retrieving user data'
+        );
+      }
     }
   }
   

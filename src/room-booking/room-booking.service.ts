@@ -9,6 +9,7 @@ export class RoomBookingService {
   constructor(private prisma: PrismaService) {}
 
   async create(createRoomBookingDto: CreateRoomBookingDto) {
+    // console.log(createRoomBookingDto);
     // Kiểm tra phòng có tồn tại không
     const room = await this.prisma.room.findUnique({
       where: { id: createRoomBookingDto.roomId },
@@ -35,6 +36,12 @@ export class RoomBookingService {
       totalAmount = Number(room.price) * (createRoomBookingDto.stayDuration/30);
     }
 
+    // Ensure userId is a valid integer
+    const userId = Number(createRoomBookingDto.userId);
+    if (isNaN(userId) || userId <= 0 || !Number.isInteger(userId)) {
+      throw new BadRequestException('Invalid user ID');
+    }
+
     // Cập nhật thông tin người dùng nếu có
     if (createRoomBookingDto.userInfo) {
       const { fullName, phoneNumber, email, identityCard, address } = createRoomBookingDto.userInfo;
@@ -55,7 +62,7 @@ export class RoomBookingService {
     // Tạo booking
     const booking = await this.prisma.roomBooking.create({
       data: {
-        userId: createRoomBookingDto.userId,
+        userId: userId,
         roomId: createRoomBookingDto.roomId,
         bookingDate: new Date(),
         status: BookingStatus.pending,
@@ -224,5 +231,28 @@ export class RoomBookingService {
       },
     };
     
+  }
+
+  async findBookingsByUserId(userId: number) {
+    // Ensure userId is a valid integer
+    const userIdNum = Number(userId);
+    if (isNaN(userIdNum) || userIdNum <= 0 || !Number.isInteger(userIdNum)) {
+      throw new BadRequestException('Invalid user ID');
+    }
+
+    // Get all bookings for the user
+    const bookings = await this.prisma.roomBooking.findMany({
+      where: {
+        userId: userIdNum
+      },
+      include: {
+        room: true
+      },
+      orderBy: {
+        bookingDate: 'desc'
+      }
+    });
+
+    return bookings;
   }
 }
