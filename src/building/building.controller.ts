@@ -32,7 +32,7 @@ export class BuildingController {
     }
   }
 
-  @Delete(':id')
+  @Patch('delete/:id')
   async deleteBuilding(@Param('id') id: string) {
     try {
       const building = await this.buildingService.deleteBuilding(+id);
@@ -81,33 +81,6 @@ export class BuildingController {
       );
     }
   }
-
-  // @Get(':id')
-  // async findOne(@Param('id') id: string) {
-  //   try {
-  //     const building = await this.buildingService.findOne(+id);
-      
-  //     if (!building) {
-  //       return new ResponseData(
-  //         null,
-  //         HttpStatus.NOT_FOUND,
-  //         HttpMessage.NOT_FOUND
-  //       );
-  //     }
-      
-  //     return new ResponseData(  
-  //       building,
-  //       HttpStatus.SUCCESS,
-  //       HttpMessage.SUCCESS
-  //     );
-  //   } catch (error) {
-  //     return new ResponseData(
-  //       null,
-  //       HttpStatus.SERVER_ERROR,
-  //       HttpMessage.SERVER_ERROR
-  //     );
-  //   }
-  // }
 
   @Get('search')
   async searchBuildings(

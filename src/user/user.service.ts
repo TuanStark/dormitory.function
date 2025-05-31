@@ -205,7 +205,10 @@ export class UserService {
   async remove(id: number) {
     return this.prisma.user.update({
       where: { id },
-      data: { status: false }
+      data: { 
+        status: false,
+        deletedAt: new Date()
+      }
     });
   }
 

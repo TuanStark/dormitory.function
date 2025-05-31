@@ -111,7 +111,7 @@ export class RoomController {
     }
   }
 
-  @Delete(':id')
+  @Patch('delete/:id')
   async remove(@Param('id') id: string) {
     try {
       return new ResponseData(

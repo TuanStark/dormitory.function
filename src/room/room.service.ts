@@ -302,19 +302,12 @@ export class RoomService {
         if (!room) {
           throw new Error(`Phòng với ID ${id} không tồn tại`);
         }
-        // 1. Delete all related amenities
-        await prisma.roomAmenity.deleteMany({
-          where: { roomId: id },
-        });
 
-        // 2. Delete all related images from database
-        await prisma.roomImage.deleteMany({
-          where: { roomId: id },
-        });
-
-        // 3. Delete the room itself
-        return prisma.room.delete({
+        return prisma.room.update({
           where: { id },
+          data: {
+            deletedAt: new Date()
+          }
         });
       });
     } catch (error) {

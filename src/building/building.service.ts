@@ -431,8 +431,11 @@ export class BuildingService {
   }
 
   async deleteBuilding(id: number) {
-    const building = await this.prisma.building.delete({
+    const building = await this.prisma.building.update({
       where: { id },
+      data: {
+        deletedAt: new Date()
+      }
     });
     return building;
   }

@@ -108,6 +108,7 @@ model User {
   reports      Report[]
   reviews      Review[]
   posts        Post[]
+  deletedAt    DateTime?
   createAt     DateTime      @default(now())
   updateAt     DateTime      @updatedAt
 }
@@ -128,6 +129,7 @@ model Building {
   twoStar    Int @default(0)
   oneStar    Int @default(0)
   rooms       Room[]
+  deletedAt    DateTime?
   createAt    DateTime @default(now())
   updateAt    DateTime @updatedAt
 }
@@ -149,6 +151,7 @@ model Room {
   amenities        RoomAmenity[]
   reviews          Review[]
   reports          Report[]
+  deletedAt        DateTime?
   createAt         DateTime      @default(now())
   updateAt         DateTime      @updatedAt
 }

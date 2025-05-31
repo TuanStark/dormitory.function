@@ -159,7 +159,7 @@ export class UserController {
   }
 
   // @UseGuards(MyJwtGuard)
-  @Delete(':id')
+  @Patch(':id')
   async remove(@Param('id') id: string) {
     return this.userService.remove(+id);
   }
